@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1eb">
+  <meta name="description"
+    content="A software portfolio of eleven projects across Windows Forms, Windows Services, ASP.NET, the web, and a small experimental lab.">
+  <title>Your Name — Software Portfolio</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='4' fill='%230e1412'/%3E%3Cpath d='M16 18h8l8 12 8-12h8L36 36v10h-8V36L16 18Z' fill='%23d9f45b'/%3E%3C/svg%3E">
+  <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* OD-LAYOUT-PRIMITIVES v1 — structure only: display, flex/grid, overflow, wrapping, ratio, geometry.
+       Put this @layer first; product CSS outside the layer always wins. */
+    @layer od-layout {
+      :where(.od-stack, .od-row, .od-row-top, .od-cluster, .od-grid, .od-field, .od-stat, .od-cell, .od-tile)> :where(*) {
+        min-width: 0;
+      }
+
+      /* containers */
+      .od-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--od-gap, 8px);
+      }
+
+      .od-row {
+        display: flex;
+        align-items: center;
+        gap: var(--od-gap, 8px);
+      }
+
+      .od-row-top {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--od-gap, 8px);
+      }
+
+      .od-cluster {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--od-gap, 8px);
+      }
+
+      .od-fill {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      .od-fixed {
+        flex: none;
+      }
+
+      .od-grid {
+        display: grid;
+        gap: var(--od-gap, 12px);
+        grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr));
+      }
+
+      /* stacked information: each piece is its own line — never sibling inline spans */
+      .od-stat,
+      .od-field,
+      .od-cell {
+        display: grid;
+        gap: var(--od-gap, 2px);
+      }
+
+      :where(.od-stat, .od-field, .od-cell)> :where(*) {
+        display: block;
+      }
+
+      .od-tile {
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      :where(.od-tile)> :where(*) {
+        display: block;
+      }
+
+      /* media keeps its intrinsic ratio by default; never a distorted or cropped
+         cover by accident. height:auto lets the ratio win over an <img height="…">
+         attribute. Cropping to a uniform box is an explicit opt-in: set --od-ratio
+         AND add .od-media-cover together (per the core rule, only where a crop is
+         deliberate — tile thumbs, decorative fills — never on full-frame content). */
+      .od-media {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: var(--od-ratio, auto);
+      }
+
+      .od-media-cover {
+        object-fit: cover;
+      }
+
+      /* functional inline SVG icons opt into bounded geometry; content SVGs keep their own */
+      .od-icon {
+        display: inline-block;
+        inline-size: var(--od-icon-size, 1em);
+        block-size: var(--od-icon-size, 1em);
+        flex: none;
+      }
+
+      /* data text only — authored copy is rewritten to its budget instead */
+      .od-truncate {
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .od-clamp-2,
+      .od-clamp-3 {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+      }
+
+      .od-clamp-2 {
+        -webkit-line-clamp: 2;
+      }
+
+      .od-clamp-3 {
+        -webkit-line-clamp: 3;
+      }
+
+      .od-lines-2 {
+        min-height: calc(2 * 1.4em);
+      }
+
+      /* block-level reservation for a shared baseline */
+      .od-nowrap {
+        white-space: nowrap;
+      }
+
+      /* 数字+单位 · 价格+起 · 日期+星期 */
+      .od-keep {
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      /* CJK labels break at spaces / <wbr> first */
+
+      /* screen skeleton (optional): bars take their own space, the middle scrolls — no padding guessed for chrome */
+      .od-screen {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        height: 100%;
+      }
+
+      .od-scroll {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        min-height: 0;
+      }
+
+      /* horizontal rail: the next item peeks at the edge; trailing room survives overflow */
+      .od-rail {
+        display: flex;
+        gap: var(--od-gap, 8px);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        padding-inline: var(--od-rail-pad, 16px);
+        scroll-padding-inline: var(--od-rail-pad, 16px);
+      }
+
+      .od-rail::-webkit-scrollbar {
+        display: none;
+      }
+
+      :where(.od-rail)> :where(*) {
+        flex: none;
+        scroll-snap-align: start;
+      }
+
+      :where(.od-rail)> :where(:last-child) {
+        margin-inline-end: var(--od-rail-pad, 16px);
+      }
+
+      .od-spacer {
+        flex: none;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .od-touch {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    }
+
+    /* /OD-LAYOUT-PRIMITIVES v1 */
+  </style>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="#top" aria-label="Your Name — home">
+        <span class="brand__mark" aria-hidden="true" data-initials>YN</span>
+        <span class="brand__copy">
+          <strong data-person="name">Your Name</strong>
+          <span data-person="role">Independent software developer</span>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#work"><span>01</span>Work</a>
+        <a href="#profile"><span>02</span>Profile</a>
+        <a href="#contact"><span>03</span>Contact</a>
+      </nav>
+
+      <a class="header-count" href="#work" aria-label="View all 11 projects">
+        <span class="header-count__dot" aria-hidden="true"></span>
+        <span><strong data-project-total>11</strong> projects</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow hero__eyebrow">
+            <span class="eyebrow__line" aria-hidden="true"></span>
+            <span data-person="role">Independent software developer</span>
+          </p>
+
+          <h1 class="hero__title" id="hero-title">
+            <span>Built for</span>
+            <span class="hero__title-accent">the desk.</span>
+            <span>The server.</span>
+            <span>The browser.</span>
+          </h1>
+
+          <p class="hero__lede">
+            Eleven projects across Windows desktop, background services, ASP.NET, the web,
+            and a small experimental lab. Practical software for the work that has to keep moving.
+          </p>
+
+          <div class="hero__actions">
+            <a class="button button--primary" href="#work">
+              <span>View selected work</span>
+              <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
+            <a class="text-link" href="#contact">
+              <span>Start a conversation</span>
+              <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 17 17 7M8 7h9v9" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <aside class="index-panel" aria-label="Projects by discipline">
+          <div class="index-panel__top">
+            <span>Discipline index</span>
+            <span>2023—2026</span>
+          </div>
+
+          <div class="index-panel__total">
+            <span class="index-panel__number" data-project-total>11</span>
+            <span class="index-panel__total-label">projects<br>in the archive</span>
+          </div>
+
+          <div class="index-panel__rows" id="index-rows"></div>
+
+          <div class="index-panel__foot">
+            <span>Selected builds</span>
+            <a href="#work">Browse all <span aria-hidden="true">↘</span></a>
+          </div>
+        </aside>
+      </div>
+
+      <div class="hero__strip">
+        <a class="scroll-cue" href="#work">
+          <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v15M6 13l6 6 6-6" />
+          </svg>
+          <span>Scroll to explore</span>
+        </a>
+        <span class="hero__strip-line" aria-hidden="true"></span>
+        <p>Desktop systems / Background services / Web interfaces</p>
+      </div>
+    </section>
+
+    <section class="work" id="work" aria-labelledby="work-title">
+      <div class="section-heading">
+        <p class="eyebrow"><span class="eyebrow__number">01</span> Selected work</p>
+
+        <div class="section-heading__main">
+          <h2 id="work-title">The archive<span class="accent-dot">.</span></h2>
+          <p>Eleven projects, five tracks. Filter the collection or open any build for the short version of what it does
+            and how it was made.</p>
+        </div>
+
+        <div class="section-heading__note" aria-hidden="true">
+          <span class="section-heading__note-number">11</span>
+          <span>projects<br>five tracks</span>
+        </div>
+      </div>
+
+      <div class="work__filter">
+        <div class="filter-list" id="filter-list" role="group" aria-label="Filter projects"></div>
+        <p class="filter-status" aria-live="polite" aria-atomic="true">
+          <span id="result-count">11</span>
+          <span class="filter-status__slash" aria-hidden="true">/</span>
+          <span data-project-total>11</span>
+          <span class="filter-status__label">shown</span>
+        </p>
+      </div>
+
+      <div class="project-grid" id="project-grid"></div>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <p class="eyebrow">No projects here yet</p>
+        <h3>This track is waiting for its first build.</h3>
+        <button class="button button--outline" type="button" id="reset-filter">Show all projects</button>
+      </div>
+    </section>
+
+    <section class="profile" id="profile" aria-labelledby="profile-title">
+      <div class="profile__rail">
+        <p class="eyebrow"><span class="eyebrow__number">02</span> Profile</p>
+        <p class="profile__rail-note">Software for the people who keep the work moving.</p>
+      </div>
+
+      <div class="profile__main">
+        <div class="profile__intro">
+          <h2 id="profile-title">Interfaces on the surface.<br><span>Systems underneath.</span></h2>
+          <p>
+            I build software where the interface meets the system: desktop tools that hold a lot of detail,
+            services that quietly keep data in motion, and web interfaces that make complicated workflows
+            feel straightforward.
+          </p>
+        </div>
+
+        <div class="capabilities">
+          <article class="capability">
+            <span class="capability__number">01</span>
+            <div class="capability__body">
+              <h3>Desktop products</h3>
+              <p>WinForms applications for operational work, data entry, reporting, and offline use — built for people
+                who spend the whole day in them.</p>
+            </div>
+            <span class="capability__meta">WinForms / .NET</span>
+          </article>
+
+          <article class="capability">
+            <span class="capability__number">02</span>
+            <div class="capability__body">
+              <h3>Background systems</h3>
+              <p>Windows Services and scheduled jobs that move data, watch the environment, and leave a trail when
+                something needs attention.</p>
+            </div>
+            <span class="capability__meta">Services / REST</span>
+          </article>
+
+          <article class="capability">
+            <span class="capability__number">03</span>
+            <div class="capability__body">
+              <h3>Web interfaces</h3>
+              <p>ASP.NET and front-end builds that turn internal processes into clear, responsive, accessible tools
+                instead of another tab to manage.</p>
+            </div>
+            <span class="capability__meta">ASP.NET / Web</span>
+          </article>
+        </div>
+
+        <div class="toolkit">
+          <div class="toolkit__intro">
+            <p class="eyebrow">Toolkit</p>
+            <p>The stack behind the work — from the desktop shell to the browser.</p>
+          </div>
+          <ul class="toolkit__list" aria-label="Tools and technologies">
+            <li>C#</li>
+            <li>.NET</li>
+            <li>WinForms</li>
+            <li>Windows Services</li>
+            <li>ASP.NET Core</li>
+            <li>Razor Pages</li>
+            <li>SQL Server</li>
+            <li>SQLite</li>
+            <li>JavaScript</li>
+            <li>HTML / CSS</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <div class="contact__top">
+        <p class="eyebrow eyebrow--dark"><span class="eyebrow__number">03</span> Contact</p>
+        <p class="contact__meta">Portfolio / 2026</p>
+      </div>
+
+      <div class="contact__grid">
+        <h2 id="contact-title">Let's build<br>something that<br><span>holds up.</span></h2>
+
+        <div class="contact__actions">
+          <p>Have a desktop tool, a service, or a web project in mind? The inbox is open.</p>
+
+          <a class="email-link" href="mailto:hello@yourname.dev" data-email-link>
+            <span data-person="email">hello@yourname.dev</span>
+            <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17 17 7M8 7h9v9" />
+            </svg>
+          </a>
+
+          <button class="copy-button" type="button" id="copy-email">
+            <span id="copy-label">Copy email</span>
+            <svg class="od-icon copy-button__copy" aria-hidden="true" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="8" width="11" height="11" rx="1" />
+              <path d="M16 8V5H5v11h3" />
+            </svg>
+            <svg class="od-icon copy-button__check" aria-hidden="true" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="contact__foot">
+        <p><span data-person="name">Your Name</span> / <span data-person="role">Independent software developer</span>
+        </p>
+        <a href="#top">Back to top
+          <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20V5M6 11l6-6 6 6" />
+          </svg>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span data-year>2026</span> <span data-person="name">Your Name</span></p>
+    <p>Eleven projects / five tracks / one archive</p>
+    <p>Built as a single-page portfolio</p>
+  </footer>
+
+  <dialog class="project-dialog" id="project-dialog" aria-labelledby="dialog-title">
+    <div class="project-dialog__shell">
+      <div class="project-dialog__top">
+        <p class="project-dialog__index" id="dialog-index">Project / 01</p>
+        <button class="icon-button" type="button" id="dialog-close" aria-label="Close project">
+          <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="project-dialog__grid">
+        <div class="project-dialog__visual">
+          <div class="dialog-art" id="dialog-art"></div>
+          <dl class="dialog-meta">
+            <div>
+              <dt>Track</dt>
+              <dd id="dialog-category">Windows Forms</dd>
+            </div>
+            <div>
+              <dt>Year</dt>
+              <dd id="dialog-year">2025</dd>
+            </div>
+            <div>
+              <dt>Role</dt>
+              <dd id="dialog-role">Design + development</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="project-dialog__body">
+          <p class="eyebrow" id="dialog-kicker">Selected build</p>
+          <h2 id="dialog-title">Stockroom</h2>
+          <p class="project-dialog__summary" id="dialog-summary"></p>
+          <div class="project-dialog__description" id="dialog-description"></div>
+
+          <div class="project-dialog__highlights">
+            <h3>What I built</h3>
+            <ul id="dialog-highlights"></ul>
+          </div>
+
+          <ul class="dialog-stack" id="dialog-stack" aria-label="Project stack"></ul>
+        </div>
+      </div>
+
+      <div class="project-dialog__foot">
+        <button class="text-button" type="button" id="dialog-prev">Previous project</button>
+        <button class="button button--dark" type="button" id="dialog-next">
+          <span>Next project</span>
+          <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+    <svg class="od-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+    <span>Email copied</span>
+  </div>
+
+  <noscript>
+    <p class="noscript">This portfolio needs JavaScript enabled to display the project archive.</p>
+  </noscript>
+
+  <script src="projects.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
